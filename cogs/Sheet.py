@@ -9,33 +9,63 @@
 
 import discord
 from discord.ext import commands
+import aiohttp
 
-import gspread
-gc = gspread.service_account(filename='credentials.json')
+rt_website_url = "https://mariokartboards.com/lounge/json/player.php?type=rt&name="
+ct_website_url = "https://mariokartboards.com/lounge/json/player.php?type=ct&name="
 
-#opens a lookup worksheet so MMR is retrieved quickly
-sh = gc.open_by_key('1ts17B2k8Hv5wnHB-4kCE3PNFL1EXEJ01lx-s8zPpECE')
-mmrs = sh.worksheet("search")
 
 class Sheet(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    async def mmr(self, member: discord.Member):
-        name = member.display_name
-        #updates cell B3 of the lookup sheet with the member name
-        mmrs.update_cell(3, 2, name)
-        #cell C3 of the lookup sheet returns the member's MMR,
-        #if found, otherwise returns "N"
-        check_value = mmrs.acell('C3').value
-        #if player has placement mmr, sets it to 1000
-        #for the sake of getting a team mmr average
-        if check_value == "Placement":
-            check_value = 1000
-        #if player isn't found in sheet/database, return False
-        if check_value == "N":
-            check_value = False
-        return check_value
+    async def mmr(self, member: discord.Member, is_rt=True):
+        name = member.display_name.lower().replace(" ", "")
+        full_url = rt_website_url if is_rt else ct_website_url
+        full_url += name
+        
+        #Takes a list of players, returns that list of player's matched to their player IDs
+        data = None
+        try:
+            data = await self.getJSONData(full_url)
+        except: #numerous failure types can occur, but they all mean the same thing: we didn't get out data
+            return False
+        
+        if self.data_is_corrupt(data):
+            return False
+        
+        return data[0]["current_mmr"]
+    
+    async def getJSONData(self, full_url):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(full_url) as r:
+                if r.status == 200:
+                    js = await r.json()
+                    return js
+    
+    def data_is_corrupt(self, jsonData):
+        if jsonData == None:
+            print("Bad request to Lounge API... Data was None.")
+            return True
+        if "error" in jsonData:
+            print("Bad request to Lounge API... Error in data.")
+            return True
+        if not isinstance(jsonData, list):
+            print("Bad request to Lounge API... Data was not a list.")
+            return True
+        
+        if len(jsonData) != 1:
+            return True
+        
+        playerData = jsonData[0]
+        if not isinstance(playerData, dict):
+            return True
+        
+        if "current_mmr" not in playerData or not isinstance(playerData["current_mmr"], int):
+            return True
+        
+        return playerData["current_mmr"] < 0
+        
 
 def setup(bot):
     bot.add_cog(Sheet(bot))

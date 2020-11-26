@@ -30,6 +30,9 @@ class Mogi(commands.Cog):
 
         #list of Channel objects created by the bot for easy deletion
         self.channels = []
+        
+        #Specify whether RTs or CTs, necessary for MMR lookup
+        self.is_rt = True
 
 
     # the 4 functions below act as various checks for each of the bot commands.
@@ -140,8 +143,8 @@ class Mogi(commands.Cog):
                 string = ("Successfully confirmed for your squad [%d/%d]\n"
                           % (len(confirmedPlayers), self.size))
                 if len(missingPlayers) > 0:
-                          string += "Missing players: "
-                          string += ", ".join([player.display_name for player in missingPlayers])
+                    string += "Missing players: "
+                    string += ", ".join([player.display_name for player in missingPlayers])
                 await ctx.send(string)
                 
                 #if player is the last one to confirm for their squad,
@@ -196,17 +199,17 @@ class Mogi(commands.Cog):
         # logic for when the correct number of arguments are supplied
         # (self.size - 1)
         players = {ctx.author: [True]}
-        playerMMR = await sheet.mmr(ctx.author)
+        playerMMR = await sheet.mmr(ctx.author, self.is_rt)
         if playerMMR is False:
-            await(await ctx.send("Error: MMR for player %s cannot be found! Please contact a staff member for help"
+            await(await ctx.send("Error: MMR for player %s cannot be found! Placement players are not allowed to queue. If you are not placement, please contact a staff member for help"
                            % ctx.author.display_name)).delete(delay=10)
             return
         players[ctx.author].append(playerMMR)
         for i in range(self.size-1):
             players[members[i]] = [False]
-            playerMMR = await sheet.mmr(members[i])
+            playerMMR = await sheet.mmr(members[i], self.is_rt)
             if playerMMR is False:
-                await(await ctx.send("Error: MMR for player %s cannot be found! Please contact a staff member for help"
+                await(await ctx.send("Error: MMR for player %s cannot be found! Placement players are not allowed to queue. If you are not placement, please contact a staff member for help"
                                % members[i].display_name)).delete(delay=10)
                 return
             players[members[i]].append(playerMMR)
@@ -273,7 +276,7 @@ class Mogi(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    async def start(self, ctx, size: int):
+    async def start(self, ctx, track_type:str, size: int):
         """Start a mogi in the channel defined by the config file"""
         await Mogi.hasroles(self, ctx)
         try:
@@ -284,13 +287,20 @@ class Mogi(commands.Cog):
         if size not in valid_sizes:
             await(await ctx.send("The size you entered is invalid; proper values are: 2, 3, 4")).delete(delay=5)
             return
+        valid_track_types = ["rt", "ct"]
+        track_type = track_type.lower()
+        if track_type not in valid_track_types:
+            await(await ctx.send("The track type you entered is invalid; proper values are: rt, ct")).delete(delay=5)
+            return
+        
         self.started = True
         self.gathering = True
         self.size = size
         self.waiting = []
         self.list = []
         self.avgMMRs = []
-        await ctx.send("A %dv%d mogi has been started - @here Type `!c`, `!d`, or `!list`" % (size, size))
+        self.is_rt = track_type == "rt"
+        await ctx.send("A%s %dv%d mogi has been started - @here Type `!c`, `!d`, or `!list`" % ("n RT" if self.is_rt else " CT", size, size))
 
     @commands.command()
     @commands.guild_only()
@@ -344,6 +354,7 @@ class Mogi(commands.Cog):
         self.waiting = []
         self.list = []
         self.avgMMRs = []
+        self.is_rt = True
         await ctx.send("%s has ended the mogi" % ctx.author.display_name)
             
 
@@ -483,14 +494,13 @@ class Mogi(commands.Cog):
                 ctx.guild.me: discord.PermissionOverwrite(read_messages=True)
                 }
             
-            #tries to retrieve RandomBot and BooBot's roles, and adds them to the
+            #tries to retrieve all these roles, and add them to the
             #channel overwrites if the role specified in the config file exists
-            randombot = ctx.guild.get_role(self.config["randombot_role"])
-            boobot = ctx.guild.get_role(self.config["boobot_role"])
-            if randombot is not None:
-                overwrites[randombot] = discord.PermissionOverwrite(read_messages=True)
-            if boobot is not None:
-                overwrites[boobot] = discord.PermissionOverwrite(read_messages=True)
+            for bot_role_id in self.config["roles_for_channels"]:
+                bot_role = ctx.guild.get_role(bot_role_id)
+                if bot_role is not None:
+                    overwrites[bot_role] = discord.PermissionOverwrite(read_messages=True)
+            
 
             msg = "`%s`\n" % roomName
             for j in range(int(12/self.size)):
