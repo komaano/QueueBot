@@ -1,11 +1,11 @@
 {
-	"token": "insert token here",
+	"token": "",
 	
-	"roles": ["Administrator", "Updater", "Event Organizer"],
+	"roles": ["Boss", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "Custom Track Arbitrator", "Developer"],
 	
-	"mogichannel": 772517883107475516,
+	"mogichannel": 775477321498361927,
 	
-	"randombot_role": 774697511079903243,
+	"role_names_for_channels": ["StrictBot","StatsBot","RandomBot","FriendBot","CarlBot","Dyno","Developer"],
 	
-	"boobot_role": 509882868332494849
+	"roles_for_channels": [774888854016360479, 781343712037961769, 781343927441162240, 516303884512395264, 561704778959159296, 763048794027589663, 521154917675827221]
 }
