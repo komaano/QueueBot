@@ -1,5 +1,5 @@
 # MKW Lounge Queuebot
-For continuity, I have left the original author's ReadMe below. This particular fork will have tweaks specifically for Lounge for Mario Kart Wii. This repo should only be downloaded for Mario Kart Wii Lounge use (in case the one I am hosting goes down). If you want the general Queuebot, please visit the [original author's repository](https://github.com/cyndaquilx/QueueBot).
+For continuity, I have left the [original author](https://github.com/cyndaquilx)'s ReadMe below. This particular fork will have tweaks specifically for Lounge for Mario Kart Wii. This repo should only be downloaded for Mario Kart Wii Lounge use (in case the one I am hosting goes down). If you want the general Queuebot, please visit the [original author's repository](https://github.com/cyndaquilx/QueueBot).
 
 # QueueBot
 
