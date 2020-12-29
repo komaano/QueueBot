@@ -1,9 +1,9 @@
 {
 	"token": "",
 	
-	"roles": ["Boss", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "Custom Track Arbitrator", "Developer"],
+	"roles": ["Boss", "Lower Tier RT Arbitrator", "Higher Tier RT Arbitrator", "Higher Tier CT Arbitrator", "Lower Tier CT Arbitrator", "Developer"],
 	
-	"mogichannel": 791809763209773076,
+	"mogichannel": 791200153129451530,
 	
 	"role_names_for_channels": ["StrictBot","StatsBot","RandomBot","FriendBot","CarlBot","Dyno","Developer"],
 	
