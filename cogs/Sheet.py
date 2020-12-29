@@ -27,7 +27,7 @@ sheet_cts = gc.open_by_key(ct_sheet_id)
 rt_sheet_mmrs = sheet_rts.worksheet("Leaderboard")
 ct_sheet_mmrs = sheet_cts.worksheet("Leaderboard")
 
-using_sheets = True
+using_sheets = False
 
 class Sheet(commands.Cog):
     def __init__(self, bot):
@@ -76,7 +76,6 @@ class Sheet(commands.Cog):
         name = member.display_name.lower().replace(" ", "")
         full_url = rt_website_url if is_rt else ct_website_url
         full_url += name
-        
         #Takes a list of players, returns that list of player's matched to their player IDs
         data = None
         try:
@@ -87,7 +86,7 @@ class Sheet(commands.Cog):
         if self.data_is_corrupt(data):
             return False
         
-        return data[0]["current_mmr"]
+        return int(data[0]["current_mmr"])
         
         
     async def mmr(self, member: discord.Member, is_rt=True):
@@ -122,10 +121,12 @@ class Sheet(commands.Cog):
         if not isinstance(playerData, dict):
             return True
         
-        if "current_mmr" not in playerData or not isinstance(playerData["current_mmr"], int):
+        #if "current_mmr" not in playerData or not isinstance(playerData["current_mmr"], int):
+        #    return True
+        if "current_mmr" not in playerData or not isinstance(playerData["current_mmr"], str) or not playerData["current_mmr"].isnumeric():
             return True
         
-        return playerData["current_mmr"] < 0
+        return int(playerData["current_mmr"]) < 0
         
 
 def setup(bot):
