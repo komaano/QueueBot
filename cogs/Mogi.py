@@ -501,7 +501,7 @@ class Mogi(commands.Cog):
                 bot_role = ctx.guild.get_role(bot_role_id)
                 if bot_role is not None:
                     #giving developer role manage_channels perm
-                    if bot_role.id is 521154917675827221:
+                    if bot_role.id == 521154917675827221:
                         overwrites[bot_role] = discord.PermissionOverwrite(read_messages=True, manage_channels=True)
                     else:
                         overwrites[bot_role] = discord.PermissionOverwrite(read_messages=True)
